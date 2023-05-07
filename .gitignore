@@ -2,6 +2,7 @@ third_party/detectron2
 ./models
 configs-experimental
 experiments
+visualization
 # output dir
 index.html
 data/*

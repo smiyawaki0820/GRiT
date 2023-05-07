@@ -1,0 +1,77 @@
+# https://hub.docker.com/layers/cuda/nvidia/cuda/11.3.1-runtime-ubuntu18.04/images/sha256-2954cbb31d104d444d743b8d62971ef442ecba4a666b70e40f9d717fc091170d?context=explore
+ARG BASE_IMAGE="nvidia/cuda:11.3.1-devel-ubuntu18.04"
+FROM ${BASE_IMAGE}
+
+ARG PYTHON_VERSION="3.8.2"
+
+ENV PYTHONIOENCODING "utf-8"
+ENV PATH=/usr/local/cuda-10.0/bin:/usr/local/nvidia/bin${PATH:+:${PATH}}
+ENV LD_LIBRARY_PATH=/usr/local/cuda-1.0/lib64:/usr/local/nvidia/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+ENV LANG=ja_JP.UTF-8
+ENV LANGUAGE=ja_JP:ja
+ENV LC_ALL=ja_JP.UTF-8
+
+
+COPY . /app
+WORKDIR /app
+
+
+RUN echo "|--> Install basic libraries" && \
+    apt-get update -y && \
+    apt-get upgrade -y && \
+    apt-get install -y --no-install-recommends \
+        apt-transport-https \
+        build-essential \
+        ca-certificates \
+        cmake \
+        curl \
+        pkg-config \
+        gcc \
+        gettext \
+        git \
+        gnupg \
+        jq \
+        libbz2-dev \
+        libffi-dev \
+        libgl1-mesa-dev \
+        liblzma-dev \
+        libtesseract-dev \
+        libleptonica-dev \
+        make \
+        tesseract-ocr \
+        tesseract-ocr-jpn \
+        tesseract-ocr-script-jpan \
+        tesseract-ocr-script-jpan-vert \
+        vim \
+        wget \
+        zlib1g-dev && \
+    apt-get -y autoremove && \
+    apt-get clean && \
+    rm -rf /var/cache/apt/archives/* && \
+    rm -rf /var/lib/apt/lists/*
+
+
+RUN echo "Install OpenSSL" && \
+    wget -nc https://www.openssl.org/source/openssl-1.1.1d.tar.gz && \
+    tar zxf openssl-1.1.1d.tar.gz && \
+    cd openssl-1.1.1d && \
+    ./config && \
+    make && \
+    make install && \
+    rm ../openssl-1.1.1d.tar.gz && \
+    rm -r ../openssl-1.1.1d
+
+
+RUN echo "|--> Install Python-${PYTHON_VERSION}" && \
+    wget -nc https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz && \
+    tar zxf Python-${PYTHON_VERSION}.tgz && \
+    cd Python-${PYTHON_VERSION} && \
+    ./configure && \
+    make altinstall && \
+    rm ../Python-${PYTHON_VERSION}.tgz && \
+    rm -r ../Python-${PYTHON_VERSION} && \
+    cd /usr/local/bin && \
+    ln -s python${PYTHON_VERSION%.*} python && \
+    ln -s pip${PYTHON_VERSION%.*} pip && \
+    pip install --upgrade pip
+
